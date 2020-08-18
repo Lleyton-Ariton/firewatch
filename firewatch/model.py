@@ -104,17 +104,3 @@ def accuracy(model: nn.Module, test_loader: DataLoader):
                 correct += 1
         return correct/len(test_loader.dataset)
 
-
-if __name__ == '__main__':
-
-    smoke_net = SmokeClassifier()
-
-    smoke_net.load_state_dict(torch.load('/Users/andreeaariton/PycharmProjects/firewatch/data/SmokeNet-15[v1]',
-                                         map_location=torch.device('cpu')))
-
-    smoke_test_loader = DataLoader(
-        SmokeClassificationDataset(data_root='/Users/andreeaariton/PycharmProjects/firewatch/data/grid_version/validate',
-                                   automatic_initialization=True, image_size=(227, 170)),
-        shuffle=True)
-
-    print(accuracy(smoke_net, smoke_test_loader))
