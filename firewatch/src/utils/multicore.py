@@ -13,8 +13,7 @@ class RayManager:
     def __enter__(self):
         if ray.is_initialized():
             ray.shutdown()
-        else:
-            ray.init(*self.__args, **self.__kwargs)
+        ray.init(*self.__args, **self.__kwargs)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         ray.shutdown()
