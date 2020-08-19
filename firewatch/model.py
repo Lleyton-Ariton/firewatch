@@ -53,10 +53,10 @@ class SmokeClassifier(nn.Module):
             nn.SELU(),
 
             nn.MaxPool2d(2, 2),
-            nn.BatchNorm2d(512)  # New
+            nn.BatchNorm2d(512)
         )
 
-        self.dense_block = nn.Sequential(  # New
+        self.dense_block = nn.Sequential(
             nn.Flatten(),
 
             nn.Linear(1024, 1024),
@@ -98,11 +98,11 @@ class Block(nn.Module):
         self.block = nn.Sequential(
             PaddedConv2d(self.in_features, self.out_features, kernel_size=(3, 3), stride=self.first_stride),
             nn.InstanceNorm2d(self.out_features),
-            self.activation_function(inplace=True),
+            self.activation_function(),
 
             PaddedConv2d(self.out_features, self.out_features, kernel_size=(3, 3), stride=1),
             nn.InstanceNorm2d(self.out_features),
-            self.activation_function(inplace=True)
+            self.activation_function()
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -111,7 +111,7 @@ class Block(nn.Module):
         if self.residual:
             output.add_(x)
 
-        output = self.activation_function(inplace=True)(output)
+        output = self.activation_function()(output)
 
         return output
 
