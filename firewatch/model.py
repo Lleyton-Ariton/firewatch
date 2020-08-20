@@ -219,8 +219,6 @@ class BottomUpPathway(ResNet):
             x = layer(x)
             layer_outputs.append(x)
 
-        [print(layer.size()) for layer in layer_outputs[::-1]]
-        print('\n')
         return layer_outputs[::-1]
 
 

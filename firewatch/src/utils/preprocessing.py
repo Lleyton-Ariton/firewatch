@@ -12,6 +12,7 @@ import pandas_read_xml as pdx
 
 import random
 import pathlib
+import itertools
 import multiprocessing as mp
 
 from typing import *
@@ -146,7 +147,8 @@ class SmokeClassificationDataProcessor(DataProcessor):
             return None
         raise TypeError()
 
-    def preprocess(self, image_size: Tuple[int, int]=False, automatic_initialization: bool=True) -> Tuple[np.ndarray, np.ndarray]:
+    def preprocess(self, image_size: Tuple[int, int]=False, automatic_initialization: bool=True,
+                   augment_data: bool=False) -> Tuple[np.ndarray, np.ndarray]:
         if image_size:
             self.set_image_size(image_size)
 
@@ -167,8 +169,14 @@ class SmokeClassificationDataProcessor(DataProcessor):
             ).for_each(
                 lambda x: cv2.resize(x, self.get_image_size())
             )
-
-            images.append([image for image in it.gather_sync()])
+            
+            if augment_data:
+                it = it.for_each(
+                    lambda x: (x, np.flip(x, axis=1))
+                )
+                images.append([image for image in itertools.chain(*it.gather_sync())])
+            else:
+                images.append([image for image in it.gather_sync()])
 
         if ray.is_initialized() and automatic_initialization:
             ray.shutdown()
@@ -196,7 +204,7 @@ class SmokeClassificationDataset(Dataset):
         return torch.tensor(x).float(), torch.tensor(y).float()
 
     def __init__(self, data_root: str=False, image_size: Tuple[int, int]=(500, 500),
-                 shuffle: bool=True, automatic_initialization: bool=False):
+                 shuffle: bool=True, automatic_initialization: bool=False, augment_data: bool=False):
         super().__init__()
 
         self.__data_root = data_root
@@ -206,7 +214,8 @@ class SmokeClassificationDataset(Dataset):
 
         processor = SmokeClassificationDataProcessor(data_root_path=self.__data_root, image_size=self._image_size)
 
-        smoke, no_smoke = processor.preprocess(automatic_initialization=automatic_initialization)
+        smoke, no_smoke = processor.preprocess(automatic_initialization=automatic_initialization,
+                                               augment_data=augment_data)
         smoke, no_smoke = smoke.reshape((len(smoke), 3, *self._image_size)), \
                           no_smoke.reshape((len(no_smoke), 3, *self._image_size))
 
